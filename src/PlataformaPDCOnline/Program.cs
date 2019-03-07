@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PlataformaPDCOnline.Internals.pdcOnline.Receiver;
+using System;
 using System.Threading;
 
 namespace PlataformaPDCOnline
@@ -17,8 +18,7 @@ namespace PlataformaPDCOnline
                 switch (commandLine)
                 {
                     case "stop":
-                        break;
-                    case "restart":
+                        run = false;
                         break;
                     default:
                         Console.WriteLine("Comando desconocido.");

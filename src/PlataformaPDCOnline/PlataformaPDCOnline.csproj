@@ -8,10 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Editable\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="FluentCache.Microsoft.Extensions.Caching.Redis" Version="4.0.0.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.0.0-preview.19074.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="3.0.0-preview.19074.2" />
