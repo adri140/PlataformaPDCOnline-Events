@@ -7,6 +7,8 @@ using Pdc.Hosting;
 using Pdc.Messaging;
 using Pdc.Messaging.ServiceBus;
 using PlataformaPDCOnline.Editable;
+using PlataformaPDCOnline.Editable.Denormalizers;
+using PlataformaPDCOnline.Editable.tableClass;
 using System;
 using System.Collections.Generic;
 using System.Linq;

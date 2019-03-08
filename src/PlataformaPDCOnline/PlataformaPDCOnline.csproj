@@ -29,4 +29,7 @@
     <PackageReference Include="Pdc.UnitOfWork.Abstractions" Version="1.0.0-beta.8" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\OdbcDatabase\OdbcDatabase.csproj" />
+  </ItemGroup>
 </Project>
