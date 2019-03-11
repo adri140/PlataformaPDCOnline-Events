@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -46,7 +47,7 @@ namespace PlataformaPDCOnline.Internals.pdcOnline.Receiver
         }
     }
 
-    class Receiver
+    public class Receiver
     {
         private static Receiver receiver;
 
@@ -116,7 +117,7 @@ namespace PlataformaPDCOnline.Internals.pdcOnline.Receiver
             services.AddDenormalization(options => options.Bind(configuration.GetSection("Denormalization")));
             
             services.AddLogging(builder => builder.AddDebug());
-            /*services.AddDbContext<PurchaseOrdersDbContext>(options => options.UseSqlite(connection));*/
+            //services.AddDbContext<PurchaseOrdersDbContext>(options => options.UseSqlite(connection));
             
 
             //services.AddDenormalizer<Pdc.Integration.Denormalization.Customer, CustomerDenormalizer>();

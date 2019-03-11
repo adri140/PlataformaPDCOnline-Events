@@ -24,7 +24,7 @@ namespace PlataformaPDCOnline.Editable.Events
 
     public class WebUserUpdated : Event
     {
-        public WebUserUpdated(string aggregateId, string username, CreateWebUser previous)
+        public WebUserUpdated(string aggregateId, string username, UpdateWebUser previous)
             : base(typeof(WebUser).Name, aggregateId, 0, previous)
         {
             Id = aggregateId;
@@ -37,7 +37,7 @@ namespace PlataformaPDCOnline.Editable.Events
 
     public class WebUserDeleted : Event
     {
-        public WebUserDeleted(string aggregateId, CreateWebUser previous)
+        public WebUserDeleted(string aggregateId, DeleteWebUser previous)
             : base(typeof(WebUser).Name, aggregateId, 0, previous)
         {
             Id = aggregateId;
