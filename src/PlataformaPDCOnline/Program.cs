@@ -12,7 +12,7 @@ namespace PlataformaPDCOnline
         {
             Console.WriteLine("Welcom To Job And Events");
 
-            StartFunction();
+            Boolean status = StartFunction();
 
             Boolean run = true;
 
@@ -23,7 +23,7 @@ namespace PlataformaPDCOnline
                 {
                     case "stop":
                         run = false;
-                        Receiver.Singelton().Stop();
+                        if(status) Receiver.Singelton().Stop();
                         break;
                     default:
                         Console.WriteLine("Comando desconocido.");
@@ -32,12 +32,14 @@ namespace PlataformaPDCOnline
             } while (run);
         }
 
-        private static void StartFunction()
+        private static Boolean StartFunction()
         {
             if(WebEventController.GetAllSuscriptions() >  0)
             {
                 StartReceiver();
+                return false;
             }
+            return true;
         }
 
         private static void StartReceiver()
