@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Odbc;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace PlataformaPDCOnline.Internals.Internals
 {
@@ -29,7 +30,40 @@ namespace PlataformaPDCOnline.Internals.Internals
             Infx = new InformixOdbcDao();
         }
 
-        public int EventCommitCommit(Event commitEventCommit, WebEventController controller)
+        public async Task RunEventCommitCommit(Event commitEventCommit, WebEventController controller)
+        {
+            if (controller != null)
+            {
+                OdbcTransaction transaccion = null;
+                try
+                {
+                    Infx.Database.Connection.Open();
+                    try
+                    {
+                        transaccion = Infx.Database.Connection.BeginTransaction();
+
+                        this.EventCommitCommit(commitEventCommit, controller, transaccion);
+
+                        transaccion.Commit();
+                    }
+                    catch (MyOdbcException e)
+                    {
+                        transaccion.Rollback();
+                        ErrorDBLog.Write("Error: " + e.ToString());
+                    }
+                }
+                catch (MyOdbcException ex)
+                {
+                    ErrorDBLog.Write("Error: " + ex.ToString());
+                }
+                finally
+                {
+                    if (Infx.Database.Connection.State == System.Data.ConnectionState.Open) Infx.Database.Connection.Close();
+                }
+            }
+        }
+
+        private int EventCommitCommit(Event commitEventCommit, WebEventController controller, OdbcTransaction transaccion)
         {
            int result = 0;
 
@@ -45,21 +79,22 @@ namespace PlataformaPDCOnline.Internals.Internals
                 { controller.UidName, OdbcType.VarChar }
             };
 
-            OdbcCommand command = new OdbcCommand(sql, Infx.Database.Connection);
+            OdbcCommand command = new OdbcCommand(sql, Infx.Database.Connection)
+            {
+                Transaction = transaccion
+            };
 
             DatabaseTools.InsertParameters(parameters, types, command);
 
             List<Dictionary<string, object>> table = new List<Dictionary<string, object>>();
             try
             {
-                Infx.Database.Connection.Open();
                 table = ExecuteCommadForSelect(command);
-                Infx.Database.Connection.Close();
             }
-            catch (MyOdbcException e)
+            catch (OdbcException e)
             {
-                if (Infx.Database.Connection.State == System.Data.ConnectionState.Open) Infx.Database.Connection.Close();
                 ErrorDBLog.Write(e.Message);
+                throw new MyOdbcException(e.Message);
             }
 
             if(table.Count == 1)
@@ -67,8 +102,8 @@ namespace PlataformaPDCOnline.Internals.Internals
                 sql = "UPDATE " + controller.TableName + " SET changevalue = ? eventcommit = ? WHERE " + controller.UidName + " = ?";
 
                 parameters.Clear();
-                parameters.Add("changevalue", (int) table.ToArray()[0].GetValueOrDefault("changevalue"));
-                parameters.Add("eventcommit", (int) table.ToArray()[0].GetValueOrDefault("eventcommit"));
+                parameters.Add("changevalue", (int) table.ToArray()[0].GetValueOrDefault("changevalue") - 1);
+                parameters.Add("eventcommit", (int) table.ToArray()[0].GetValueOrDefault("eventcommit") + 1);
                 parameters.Add(controller.UidName, commitEventCommit.AggregateId);
 
                 types.Add("changevalue", OdbcType.Int);
@@ -80,19 +115,13 @@ namespace PlataformaPDCOnline.Internals.Internals
 
                 try
                 {
-                    Infx.Database.Connection.Open();
                     result = command.ExecuteNonQuery();
-                    Infx.Database.Connection.Close();
                 }
-                catch(MyOdbcException e)
+                catch(OdbcException e)
                 {
-                    if (Infx.Database.Connection.State == System.Data.ConnectionState.Open) Infx.Database.Connection.Close();
                     ErrorDBLog.Write("Error: " + e.ToString());
+                    throw new MyOdbcException(e.Message);
                 }
-            }
-            else
-            {
-                //excepcion??
             }
 
             return result;
@@ -100,16 +129,16 @@ namespace PlataformaPDCOnline.Internals.Internals
 
         public List<Dictionary<string, object>> GetEvents()
         {
-            string sql = "SELECT eventname, tablename, uidname, suscriptionname FROM webevents WHERE active = ?";
+            string sql = "SELECT eventname, tablename, uidname FROM webevents WHERE activo = ?"; //cambiar el activo a active en la base de datos
 
             Dictionary<string, object> parameters = new Dictionary<string, object>
             {
-                { "active", 1 }
+                { "activo", 1 }
             };
 
             Dictionary<string, OdbcType> types = new Dictionary<string, OdbcType>
             {
-                { "active", OdbcType.Int }
+                { "activo", OdbcType.Int }
             };
 
             OdbcCommand commandOdbc = new OdbcCommand(sql, Infx.Database.Connection);
@@ -122,7 +151,7 @@ namespace PlataformaPDCOnline.Internals.Internals
                 result = this.ExecuteCommadForSelect(commandOdbc);
                 Infx.Database.Connection.Close();
             }
-            catch (MyOdbcException e)
+            catch (OdbcException e)
             {
                 //Console.WriteLine("cierra conexion Exception " + sql);
                 if (Infx.Database.Connection.State == System.Data.ConnectionState.Open) Infx.Database.Connection.Close();
@@ -150,7 +179,7 @@ namespace PlataformaPDCOnline.Internals.Internals
                 }
 
             }
-            catch (MyOdbcException e)
+            catch (OdbcException e)
             {
                 throw new MyOdbcException("Error consultas preparadas" + e.ToString());
             }

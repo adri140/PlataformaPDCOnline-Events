@@ -8,12 +8,12 @@ namespace PlataformaPDCOnline
 {
     class Program
     {
-        public static List<WebEventController> controllers;
-
         static void Main(string[] args)
         {
             Console.WriteLine("Welcom To Job And Events");
-            
+
+            StartFunction();
+
             Boolean run = true;
 
             do
@@ -23,6 +23,7 @@ namespace PlataformaPDCOnline
                 {
                     case "stop":
                         run = false;
+                        Receiver.Singelton().Stop();
                         break;
                     default:
                         Console.WriteLine("Comando desconocido.");
@@ -33,15 +34,7 @@ namespace PlataformaPDCOnline
 
         private static void StartFunction()
         {
-            List<Dictionary<string, object>> tableEvents = ConsultasPreparadas.Singelton().GetEvents();
-
-            controllers = new List<WebEventController>();
-            foreach(Dictionary<string, object> row in tableEvents)
-            {
-                controllers.Add(new WebEventController(row));
-            }
-
-            if(controllers.Count > 0)
+            if(WebEventController.GetAllSuscriptions() >  0)
             {
                 StartReceiver();
             }
@@ -49,7 +42,7 @@ namespace PlataformaPDCOnline
 
         private static void StartReceiver()
         {
-
+            Receiver.Singelton();
         }
     }
 }
