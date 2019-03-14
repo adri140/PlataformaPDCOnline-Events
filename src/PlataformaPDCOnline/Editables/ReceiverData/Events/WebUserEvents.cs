@@ -1,11 +1,10 @@
 ﻿using Pdc.Messaging;
-using PlataformaPDCOnline.Editable.Commands;
-using PlataformaPDCOnline.Editable.tableClass;
+using PlataformaPDCOnline.Editables.ReceiverData.Commands;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace PlataformaPDCOnline.Editable.Events
+namespace PlataformaPDCOnline.Editables.ReceiverData.Events
 {
     public class WebUserCreated : Event
     {

@@ -1,4 +1,4 @@
-﻿using Pdc.Denormalization;
+﻿using Pdc.Domain;
 
 namespace PlataformaPDCOnline.pdcOnline.extended
 {

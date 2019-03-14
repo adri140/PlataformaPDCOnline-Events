@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace PlataformaPDCOnline.Editable.Commands
+namespace PlataformaPDCOnline.Editables.ReceiverData.Commands
 {
     public class CreateWebUser : Command
     {

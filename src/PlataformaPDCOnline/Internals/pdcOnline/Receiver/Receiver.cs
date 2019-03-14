@@ -1,73 +1,22 @@
-﻿using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
+﻿
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Pdc.Hosting;
-using Pdc.Messaging;
 using Pdc.Messaging.ServiceBus;
-using PlataformaPDCOnline.Editable;
-using PlataformaPDCOnline.Editable.Denormalizers;
-using PlataformaPDCOnline.Editable.tableClass;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PlataformaPDCOnline.Internals.pdcOnline.Receiver
 {
-
-    public class SuscriptionsJobs
-    {
-        private static List<EventSubscriberOptions> SuscripcionesEnBruto = new List<EventSubscriberOptions>();
-
-        public static void AddSuscription(string suscriptionName)
-        {
-            SuscripcionesEnBruto.Add(new EventSubscriberOptions() { SubscriptionName = suscriptionName });
-            ProcessManagerOptions suscripciones = new ProcessManagerOptions() { Subscribers = SuscripcionesEnBruto.ToArray()}; //ojo aqui porque te estas cargando todo lo que haiga
-        }
-
-        public static void DeleteSuscriptionIfExist(string suscriptionName)
-        {
-            EventSubscriberOptions tmp = null;
-
-            foreach (EventSubscriberOptions suscription in SuscripcionesEnBruto)
-            {
-                if (suscription.SubscriptionName.Equals(suscriptionName)) tmp = suscription;
-            }
-
-            if (tmp != null)
-            {
-                SuscripcionesEnBruto.Remove(tmp);
-                ProcessManagerOptions suscripciones = new ProcessManagerOptions() { Subscribers = SuscripcionesEnBruto.ToArray() }; //ojo aqui porque te estas cargando todo lo que haiga
-            }
-        }
-    }
-
     public class Receiver
     {
-        private static Receiver receiver;
-
-        public static Receiver Singelton()
-        {
-            if(receiver == null)
-            {
-                receiver = new Receiver();
-            }
-
-            return receiver;
-        }
-
-        private CancellationTokenSource cancellationToken;
         private readonly IConfiguration configuration;
 
-        private Receiver()
+        public Receiver()
         {
-            this.configuration = GetConfiguration();
-            this.InicializeServices();
+            configuration = GetConfiguration();
         }
 
         private static IConfiguration GetConfiguration()
@@ -101,65 +50,53 @@ namespace PlataformaPDCOnline.Internals.pdcOnline.Receiver
 #endif
         }
 
-        private void InicializeServices()
-        {
-            this.cancellationToken = new CancellationTokenSource();
-
-            // Start in their own thread a Denormalization context that will receive the BoundedContext's events
-            var denormalizationServices = GetDenormalizationServices();
-            var denormalizationWorker = ExecuteDenormalizationAsync(denormalizationServices, this.cancellationToken.Token);
-        }
-
-        private IServiceProvider GetDenormalizationServices()
+        private IServiceProvider GetBoundedContextServices()
         {
             var services = new ServiceCollection();
 
-            services.AddDenormalization(options => options.Bind(configuration.GetSection("Denormalization")));
-            
             services.AddLogging(builder => builder.AddDebug());
-            //services.AddDbContext<PurchaseOrdersDbContext>(options => options.UseSqlite(connection));
-            
 
-            //services.AddDenormalizer<Pdc.Integration.Denormalization.Customer, CustomerDenormalizer>();
-            //services.AddDenormalizer<Pdc.Integration.Denormalization.CustomerDetail, CustomerDetailDenormalizer>();
-            services.AddDenormalizer<WebUser, WebUserDenormalizer>();
+            services.AddAzureServiceBusCommandReceiver(
+                builder =>
+                {
+                    builder.AddCommandHandler<CreateCustomer, CreateCustomerHandler>();
+                    builder.AddCommandHandler<RenameCustomer, RenameCustomerHandler>();
+                    builder.AddCommandHandler<MoveCustomer, MoveCustomerHandler>();
+                },
+                new Dictionary<string, Action<CommandBusOptions>>
+                {
+                    ["Core"] = options => configuration.GetSection("CommandHandler:Receiver").Bind(options),
+                });
+
+            services.AddAzureServiceBusEventSubscriber(
+                builder =>
+                {
+                    builder.AddDenormalizer<Pdc.Integration.Denormalization.Customer, CustomerDenormalizer>();
+                    builder.AddDenormalizer<Pdc.Integration.Denormalization.CustomerDetail, CustomerDetailDenormalizer>();
+                },
+                new Dictionary<string, Action<EventBusOptions>>
+                {
+                    ["Core"] = options => configuration.GetSection("Denormalization:Subscribers:0").Bind(options),
+                });
+
+            services.AddAggregateRootFactory();
+            services.AddUnitOfWork();
+            services.AddDocumentDBPersistence(options => configuration.GetSection("DocumentDBPersistence").Bind(options));
+            services.AddRedisDistributedLocks(options => configuration.GetSection("RedisDistributedLocks").Bind(options));
+            services.AddDistributedRedisCache(options =>
+            {
+                options.Configuration = configuration["DistributedRedisCache:Configuration"];
+                options.InstanceName = configuration["DistributedRedisCache:InstanceName"];
+            });
+
+            //services.AddDbContext<PurchaseOrdersDbContext>(options => options.UseSqlite(connection));
+
+            services.AddAzureServiceBusCommandSender(options => configuration.GetSection("ProcessManager:Sender").Bind(options));
+            services.AddAzureServiceBusEventPublisher(options => configuration.GetSection("BoundedContext:Publisher").Bind(options));
+
+            services.AddHostedService<HostedService>();
 
             return services.BuildServiceProvider();
-        }
-
-        private static async Task ExecuteDenormalizationAsync(IServiceProvider services, CancellationToken cancellationToken)
-        {
-
-            /*using (var scope = services.CreateScope())
-            {
-                var dbContext = services.GetRequiredService<PurchaseOrdersDbContext>();
-                await dbContext.Database.EnsureCreatedAsync();
-            }*/
-
-            var denormalization = services.GetRequiredService<IHostedService>();
-
-            try
-            {
-                await denormalization.StartAsync(default);
-
-                await Task.Delay(
-                    Timeout.InfiniteTimeSpan,
-                    cancellationToken);
-
-            }
-            catch (TaskCanceledException)
-            {
-
-            }
-            finally
-            {
-                await denormalization.StopAsync(default);
-            }
-        }
-
-        public void Stop()
-        {
-            this.cancellationToken.Cancel();
         }
     }
 }

@@ -1,9 +1,9 @@
-﻿using Pdc.Denormalization;
+﻿using Pdc.Domain;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace PlataformaPDCOnline.Editable.tableClass
+namespace PlataformaPDCOnline.Editables.ReceiverData.Denormalizers
 {
     public class WebUser : View
     {
