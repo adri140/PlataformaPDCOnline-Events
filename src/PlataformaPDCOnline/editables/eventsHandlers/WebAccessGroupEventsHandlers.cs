@@ -4,7 +4,7 @@ using System.Text;
 
 namespace PlataformaPDCOnline.editables.eventsHandlers
 {
-    class Class1
+    class WebAccessGroupEventsHandlers
     {
     }
 }
