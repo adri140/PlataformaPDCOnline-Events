@@ -1,9 +1,6 @@
 ﻿using Pdc.Messaging;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace PlataformaPDCOnline.Editables.ReceiverData.Commands
+namespace PlataformaPDCOnline.Editable.pdcOnline.Commands
 {
     public class CreateWebUser : Command
     {
@@ -12,8 +9,8 @@ namespace PlataformaPDCOnline.Editables.ReceiverData.Commands
 
         }
 
-        public string username { get; set; }
-        public string usercode { set; get; }
+        public string Username { get; set; }
+        public string Usercode { set; get; }
     }
 
     public class UpdateWebUser : Command
@@ -23,7 +20,7 @@ namespace PlataformaPDCOnline.Editables.ReceiverData.Commands
 
         }
 
-        public string username { set; get; }
+        public string Username { set; get; }
     }
 
     public class DeleteWebUser : Command

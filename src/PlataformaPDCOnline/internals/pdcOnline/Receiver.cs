@@ -1,6 +1,6 @@
-﻿
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Pdc.Hosting;
 using Pdc.Messaging.ServiceBus;
@@ -8,15 +8,42 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace PlataformaPDCOnline.Internals.pdcOnline.Receiver
+namespace PlataformaPDCOnline.internals.pdcOnline
 {
     public class Receiver
     {
+
         private readonly IConfiguration configuration;
+        private IHostedService boundedContext;
+        private IServiceScope scope;
 
         public Receiver()
         {
             configuration = GetConfiguration();
+            var services = GetBoundedContextServices();
+
+
+        }
+
+        private async void RunServices(IServiceProvider services)
+        {
+            using (scope = services.CreateScope())
+            {
+                //var receiver = services.GetServices<IReceiver>();
+
+                //var hs = new HostedService(services.GetRequiredService<ILogger<HostedService>>(), services.GetServices<IReceiver>());
+                boundedContext = services.GetRequiredService<IHostedService>();
+                
+                await boundedContext.StartAsync(default);
+            }
+        }
+
+        private async void EndServices()
+        {
+            using (scope)
+            {
+                await boundedContext.StopAsync(default);
+            }
         }
 
         private static IConfiguration GetConfiguration()
@@ -56,23 +83,10 @@ namespace PlataformaPDCOnline.Internals.pdcOnline.Receiver
 
             services.AddLogging(builder => builder.AddDebug());
 
-            services.AddAzureServiceBusCommandReceiver(
-                builder =>
-                {
-                    builder.AddCommandHandler<CreateCustomer, CreateCustomerHandler>();
-                    builder.AddCommandHandler<RenameCustomer, RenameCustomerHandler>();
-                    builder.AddCommandHandler<MoveCustomer, MoveCustomerHandler>();
-                },
-                new Dictionary<string, Action<CommandBusOptions>>
-                {
-                    ["Core"] = options => configuration.GetSection("CommandHandler:Receiver").Bind(options),
-                });
-
             services.AddAzureServiceBusEventSubscriber(
                 builder =>
                 {
-                    builder.AddDenormalizer<Pdc.Integration.Denormalization.Customer, CustomerDenormalizer>();
-                    builder.AddDenormalizer<Pdc.Integration.Denormalization.CustomerDetail, CustomerDetailDenormalizer>();
+                    builder.AddEventHandler<>();
                 },
                 new Dictionary<string, Action<EventBusOptions>>
                 {
@@ -81,7 +95,7 @@ namespace PlataformaPDCOnline.Internals.pdcOnline.Receiver
 
             services.AddAggregateRootFactory();
             services.AddUnitOfWork();
-            services.AddDocumentDBPersistence(options => configuration.GetSection("DocumentDBPersistence").Bind(options));
+            //services.AddDocumentDBPersistence(options => configuration.GetSection("DocumentDBPersistence").Bind(options));
             services.AddRedisDistributedLocks(options => configuration.GetSection("RedisDistributedLocks").Bind(options));
             services.AddDistributedRedisCache(options =>
             {
@@ -91,13 +105,10 @@ namespace PlataformaPDCOnline.Internals.pdcOnline.Receiver
 
             //services.AddDbContext<PurchaseOrdersDbContext>(options => options.UseSqlite(connection));
 
-            services.AddAzureServiceBusCommandSender(options => configuration.GetSection("ProcessManager:Sender").Bind(options));
-            services.AddAzureServiceBusEventPublisher(options => configuration.GetSection("BoundedContext:Publisher").Bind(options));
-
             services.AddHostedService<HostedService>();
 
             return services.BuildServiceProvider();
         }
+
     }
 }
-

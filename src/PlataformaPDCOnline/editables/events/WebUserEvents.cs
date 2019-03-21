@@ -1,10 +1,6 @@
 ﻿using Pdc.Messaging;
-using PlataformaPDCOnline.Editables.ReceiverData.Commands;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace PlataformaPDCOnline.Editables.ReceiverData.Events
+namespace PlataformaPDCOnline.Editable.pdcOnline.Commands
 {
     public class WebUserCreated : Event
     {
@@ -12,13 +8,13 @@ namespace PlataformaPDCOnline.Editables.ReceiverData.Events
             : base(typeof(WebUser).Name, aggregateId, 0, previous)
         {
             Id = aggregateId;
-            this.username = username;
-            this.usercode = usercode;
+            this.Username = username;
+            this.Usercode = usercode;
         }
 
         public string Id { get; set; }
-        public string username { set; get; }
-        public string usercode { set; get; }
+        public string Username { set; get; }
+        public string Usercode { set; get; }
     }
 
     public class WebUserUpdated : Event
@@ -27,11 +23,11 @@ namespace PlataformaPDCOnline.Editables.ReceiverData.Events
             : base(typeof(WebUser).Name, aggregateId, 0, previous)
         {
             Id = aggregateId;
-            this.username = username;
+            this.Username = username;
         }
 
         public string Id { get; set; }
-        public string username { set; get; }
+        public string Username { set; get; }
     }
 
     public class WebUserDeleted : Event
