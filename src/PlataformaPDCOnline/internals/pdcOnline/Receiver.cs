@@ -3,6 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Pdc.Hosting;
+using Pdc.Integration.BoundaryContext;
+using Pdc.Integration.Denormalization;
 using Pdc.Messaging.ServiceBus;
 using PlataformaPDCOnline.Editable.EventsHandlers;
 using PlataformaPDCOnline.Editable.pdcOnline.Events;
@@ -29,12 +31,14 @@ namespace PlataformaPDCOnline.internals.pdcOnline
 
         private async void RunServices(IServiceProvider services)
         {
+            Console.WriteLine("Servicio Iniciadondo..");
             using (scope = services.CreateScope())
             {
                 boundedContext = services.GetRequiredService<IHostedService>();
                 
                 await boundedContext.StartAsync(default);
             }
+            Console.WriteLine("Iniciado..");
         }
 
         public async void EndServices()
@@ -85,25 +89,18 @@ namespace PlataformaPDCOnline.internals.pdcOnline
             services.AddAzureServiceBusEventSubscriber(
                 builder =>
                 {
+                    builder.AddEventHandler<CustomerCreated, CustomerDenormalizer>();
+
                     builder.AddEventHandler<WebUserCreated, WebUserCreatedHandler>();
                     builder.AddEventHandler<WebUserUpdated, WebUserUpdatedHandler>();
                     builder.AddEventHandler<WebUserDeleted, WebUserDeletedHandler>();
 
-                    builder.AddEventHandler<WebAccessGroupCreated, WebAccessGroupCreatedHandler > ();
+                    builder.AddEventHandler<WebAccessGroupCreated, WebAccessGroupCreatedHandler>();
                 },
                 new Dictionary<string, Action<EventBusOptions>>
                 {
                     ["Core"] = options => configuration.GetSection("Denormalization:Subscribers:0").Bind(options),
                 });
-
-            services.AddAggregateRootFactory();
-            services.AddUnitOfWork();
-            services.AddRedisDistributedLocks(options => configuration.GetSection("RedisDistributedLocks").Bind(options));
-            services.AddDistributedRedisCache(options =>
-            {
-                options.Configuration = configuration["DistributedRedisCache:Configuration"];
-                options.InstanceName = configuration["DistributedRedisCache:InstanceName"];
-            });
 
             services.AddHostedService<HostedService>();
 
