@@ -1,10 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
 using Pdc.Domain;
 using PlataformaPDCOnline.Editable.pdcOnline.Commands;
+using PlataformaPDCOnline.Editable.pdcOnline.Events;
 using System;
 using System.Threading.Tasks;
 
-namespace PlataformaPDCOnline
+namespace PlataformaPDCOnline.Editable.ClassTab
 {
     public class WebUser : AggregateRoot, ISaga<WebUserCreated>, ISaga<WebUserDeleted>, ISaga<WebUserUpdated>
     {

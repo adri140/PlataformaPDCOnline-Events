@@ -7,7 +7,7 @@ namespace OdbcDatabase
 {
     public class ErrorDBLog
     {
-        public async static void Write(string dataException)
+        public static void Write(string dataException)
         {
             try
             {
@@ -16,7 +16,7 @@ namespace OdbcDatabase
                     file.WriteLine("ErrorDB-EventClient " + DateTime.Now + "=> " + dataException);
                 }
             }
-            catch(FileNotFoundException fie)
+            catch (FileNotFoundException fie)
             {
                 Console.WriteLine(fie.Message);
             }

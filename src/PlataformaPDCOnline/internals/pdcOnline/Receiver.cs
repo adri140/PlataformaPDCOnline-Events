@@ -4,6 +4,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Pdc.Hosting;
 using Pdc.Messaging.ServiceBus;
+using PlataformaPDCOnline.Editable.EventsHandlers;
+using PlataformaPDCOnline.Editable.pdcOnline.Events;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -22,23 +24,20 @@ namespace PlataformaPDCOnline.internals.pdcOnline
             configuration = GetConfiguration();
             var services = GetBoundedContextServices();
 
-
+            RunServices(services);
         }
 
         private async void RunServices(IServiceProvider services)
         {
             using (scope = services.CreateScope())
             {
-                //var receiver = services.GetServices<IReceiver>();
-
-                //var hs = new HostedService(services.GetRequiredService<ILogger<HostedService>>(), services.GetServices<IReceiver>());
                 boundedContext = services.GetRequiredService<IHostedService>();
                 
                 await boundedContext.StartAsync(default);
             }
         }
 
-        private async void EndServices()
+        public async void EndServices()
         {
             using (scope)
             {
@@ -86,7 +85,11 @@ namespace PlataformaPDCOnline.internals.pdcOnline
             services.AddAzureServiceBusEventSubscriber(
                 builder =>
                 {
-                    builder.AddEventHandler<>();
+                    builder.AddEventHandler<WebUserCreated, WebUserCreatedHandler>();
+                    builder.AddEventHandler<WebUserUpdated, WebUserUpdatedHandler>();
+                    builder.AddEventHandler<WebUserDeleted, WebUserDeletedHandler>();
+
+                    builder.AddEventHandler<WebAccessGroupCreated, WebAccessGroupCreatedHandler > ();
                 },
                 new Dictionary<string, Action<EventBusOptions>>
                 {
@@ -95,15 +98,12 @@ namespace PlataformaPDCOnline.internals.pdcOnline
 
             services.AddAggregateRootFactory();
             services.AddUnitOfWork();
-            //services.AddDocumentDBPersistence(options => configuration.GetSection("DocumentDBPersistence").Bind(options));
             services.AddRedisDistributedLocks(options => configuration.GetSection("RedisDistributedLocks").Bind(options));
             services.AddDistributedRedisCache(options =>
             {
                 options.Configuration = configuration["DistributedRedisCache:Configuration"];
                 options.InstanceName = configuration["DistributedRedisCache:InstanceName"];
             });
-
-            //services.AddDbContext<PurchaseOrdersDbContext>(options => options.UseSqlite(connection));
 
             services.AddHostedService<HostedService>();
 

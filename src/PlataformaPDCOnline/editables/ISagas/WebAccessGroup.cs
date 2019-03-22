@@ -1,10 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
 using Pdc.Domain;
 using PlataformaPDCOnline.Editable.pdcOnline.Commands;
+using PlataformaPDCOnline.Editable.pdcOnline.Events;
 using System;
 using System.Threading.Tasks;
 
-namespace PlataformaPDCOnline
+namespace PlataformaPDCOnline.Editable.ClassTab
 {
     public class WebAccessGroup : AggregateRoot, ISaga<WebAccessGroupCreated>
     {
@@ -25,7 +26,7 @@ namespace PlataformaPDCOnline
 
         public void Apply(WebAccessGroupCreated @event)
         {
-            throw new NotImplementedException();
+            Id = @event.Id;
         }
     }
 }

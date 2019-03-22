@@ -1,7 +1,8 @@
 ﻿using Pdc.Messaging;
+using PlataformaPDCOnline.Editable.ClassTab;
 using PlataformaPDCOnline.Editable.pdcOnline.Commands;
 
-namespace PlataformaPDCOnline
+namespace PlataformaPDCOnline.Editable.pdcOnline.Events
 {
     public class WebAccessGroupCreated : Event
     {
