@@ -106,6 +106,5 @@ namespace PlataformaPDCOnline.internals.pdcOnline
 
             return services.BuildServiceProvider();
         }
-
     }
 }
