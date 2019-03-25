@@ -2,6 +2,7 @@
 using OdbcDatabase.database;
 using OdbcDatabase.excepciones;
 using Pdc.Messaging;
+using PlataformaPDCOnline.internals.exceptions;
 using System.Collections.Generic;
 using System.Data.Odbc;
 using System.Threading.Tasks;

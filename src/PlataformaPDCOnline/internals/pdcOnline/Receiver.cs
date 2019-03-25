@@ -19,20 +19,20 @@ namespace PlataformaPDCOnline.internals.pdcOnline
 
         private readonly IConfiguration configuration;
         private IHostedService boundedContext;
-        private IServiceScope scope;
+        private readonly IServiceProvider services;
 
         public Receiver()
         {
             configuration = GetConfiguration();
-            var services = GetBoundedContextServices();
+            services = GetBoundedContextServices();
 
-            RunServices(services);
+            RunServices();
         }
 
-        private async void RunServices(IServiceProvider services)
+        private async void RunServices()
         {
             Console.WriteLine("Servicio Iniciadondo..");
-            using (scope = services.CreateScope())
+            using (services.GetRequiredService<IServiceScope>())
             {
                 boundedContext = services.GetRequiredService<IHostedService>();
                 
@@ -43,7 +43,7 @@ namespace PlataformaPDCOnline.internals.pdcOnline
 
         public async void EndServices()
         {
-            using (scope)
+            using (services.GetRequiredService<IServiceScope>())
             {
                 await boundedContext.StopAsync(default);
             }
@@ -103,6 +103,8 @@ namespace PlataformaPDCOnline.internals.pdcOnline
                 });
 
             services.AddHostedService<HostedService>();
+
+            services.AddSingleton(services.BuildServiceProvider().CreateScope());
 
             return services.BuildServiceProvider();
         }

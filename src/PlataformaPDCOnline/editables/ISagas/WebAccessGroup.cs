@@ -20,7 +20,7 @@ namespace PlataformaPDCOnline.Editable.ClassTab
             {
                 throw new InvalidOperationException("The command was not sended to this aggregate root.");
             }
-            Console.WriteLine("Eliminando evento WebUserDeleted");
+            //Console.WriteLine("Eliminando evento WebUserDeleted");
             await RaiseEventAsync(new WebAccessGroupCreated(Id, command.Accessgroupname, command));
         }
 
