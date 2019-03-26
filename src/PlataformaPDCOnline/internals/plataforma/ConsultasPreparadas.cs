@@ -85,9 +85,7 @@ namespace PlataformaPDCOnline.internals.plataforma
 
                 //datos de la update
                 string sqlU = "UPDATE " + controller.TableName + " SET eventcommit = ?, changevalue = ? WHERE " + controller.UidName + " = ?";
-
-
-
+                
                 Dictionary<string, OdbcType> typeU = new Dictionary<string, OdbcType>()
                 {
                     { "eventcommit", OdbcType.Int },

@@ -56,13 +56,6 @@ namespace PlataformaPDCOnline.internals.pdcOnline
             var c = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string>
                 {
-                    /*{ "DistributedRedisCache:InstanceName", "Cache." },
-                    { "RedisDistributedLocks:InstanceName", "Locks." },
-                    { "DocumentDBPersistence:Database", "Tests" },
-                    { "DocumentDBPersistence:Collection", "Events" },
-                    { "ProcessManager:Sender:EntityPath", "core-test-commands" },
-                    { "BoundedContext:Publisher:EntityPath", "core-test-events" },
-                    { "CommandHandler:Receiver:EntityPath", "core-test-commands" },*/
                     { "Denormalization:Subscribers:0:EntityPath", "core-test-events" },
                     { "Denormalization:Subscribers:0:SubscriptionName", "core-test-events-denormalizers" }
                 })
